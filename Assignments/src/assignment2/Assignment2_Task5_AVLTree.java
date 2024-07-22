@@ -1,0 +1,136 @@
+package assignment2;
+
+import java.util.*;
+
+public class Assignment2_Task5_AVLTree {
+    private class AVLTreeNode {
+        String avlKeyword;
+        int avlFrequencyCount;
+        int avlNodeHeight;
+        AVLTreeNode avlLeftChild, avlRightChild;
+
+        AVLTreeNode(String key) {
+            this.avlKeyword = key;
+            this.avlFrequencyCount = 1;
+            this.avlNodeHeight = 1;
+        }
+    }
+
+    private AVLTreeNode avlRootNode;
+
+    private int getAVLHeight(AVLTreeNode avlNode) {
+        return avlNode == null ? 0 : avlNode.avlNodeHeight;
+    }
+
+    private int getAVLMax(int avl_a, int avl_b) {
+        return Math.max(avl_a, avl_b);
+    }
+
+    private AVLTreeNode rightRotate(AVLTreeNode avlY) {
+        AVLTreeNode avlX = avlY.avlLeftChild;
+        AVLTreeNode T2 = avlX.avlRightChild;
+
+        avlX.avlRightChild = avlY;
+        avlY.avlLeftChild = T2;
+
+        avlY.avlNodeHeight = getAVLMax(getAVLHeight(avlY.avlLeftChild), getAVLHeight(avlY.avlRightChild)) + 1;
+        avlX.avlNodeHeight = getAVLMax(getAVLHeight(avlX.avlLeftChild), getAVLHeight(avlX.avlRightChild)) + 1;
+
+        return avlX;
+    }
+
+    private AVLTreeNode leftRotate(AVLTreeNode avlX) {
+        AVLTreeNode avlY = avlX.avlRightChild;
+        AVLTreeNode avlT2 = avlY.avlLeftChild;
+
+        avlY.avlLeftChild = avlX;
+        avlX.avlRightChild = avlT2;
+
+        avlX.avlNodeHeight = getAVLMax(getAVLHeight(avlX.avlLeftChild), getAVLHeight(avlX.avlRightChild)) + 1;
+        avlY.avlNodeHeight = getAVLMax(getAVLHeight(avlY.avlLeftChild), getAVLHeight(avlY.avlRightChild)) + 1;
+
+        return avlY;
+    }
+
+    private int getBalance(AVLTreeNode avlNode) {
+        return avlNode == null ? 0 : getAVLHeight(avlNode.avlLeftChild) - getAVLHeight(avlNode.avlRightChild);
+    }
+
+    public void insertKeyword(String keyword) {
+        avlRootNode = insertRecursive(avlRootNode, keyword);
+    }
+
+    private AVLTreeNode insertRecursive(AVLTreeNode aVLTreeNode, String keyword) {
+        if (aVLTreeNode == null) {
+            return new AVLTreeNode(keyword);
+        }
+
+        if (keyword.equals(aVLTreeNode.avlKeyword)) {
+            aVLTreeNode.avlFrequencyCount++;
+            return aVLTreeNode;
+        }
+
+        if (keyword.compareTo(aVLTreeNode.avlKeyword) < 0) {
+            aVLTreeNode.avlLeftChild = insertRecursive(aVLTreeNode.avlLeftChild, keyword);
+        } else {
+            aVLTreeNode.avlRightChild = insertRecursive(aVLTreeNode.avlRightChild, keyword);
+        }
+
+        aVLTreeNode.avlNodeHeight = 1 + getAVLMax(getAVLHeight(aVLTreeNode.avlLeftChild), getAVLHeight(aVLTreeNode.avlRightChild));
+
+        int balance = getBalance(aVLTreeNode);
+
+        if (balance > 1 && keyword.compareTo(aVLTreeNode.avlLeftChild.avlKeyword) < 0) {
+            return rightRotate(aVLTreeNode);
+        }
+
+        if (balance < -1 && keyword.compareTo(aVLTreeNode.avlRightChild.avlKeyword) > 0) {
+            return leftRotate(aVLTreeNode);
+        }
+
+        if (balance > 1 && keyword.compareTo(aVLTreeNode.avlLeftChild.avlKeyword) > 0) {
+            aVLTreeNode.avlLeftChild = leftRotate(aVLTreeNode.avlLeftChild);
+            return rightRotate(aVLTreeNode);
+        }
+
+        if (balance < -1 && keyword.compareTo(aVLTreeNode.avlRightChild.avlKeyword) < 0) {
+            aVLTreeNode.avlRightChild = rightRotate(aVLTreeNode.avlRightChild);
+            return leftRotate(aVLTreeNode);
+        }
+
+        return aVLTreeNode;
+    }
+
+    public List<Map.Entry<String, Integer>> getSortedKeywords() {
+        List<Map.Entry<String, Integer>> list = new ArrayList<>();
+        inOrder(avlRootNode, list);
+        list.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+        return list;
+    }
+
+    private void inOrder(AVLTreeNode aVLTreeNode, List<Map.Entry<String, Integer>> list) {
+        if (aVLTreeNode != null) {
+            inOrder(aVLTreeNode.avlLeftChild, list);
+            list.add(new AbstractMap.SimpleEntry<>(aVLTreeNode.avlKeyword, aVLTreeNode.avlFrequencyCount));
+            inOrder(aVLTreeNode.avlRightChild, list);
+        }
+    }
+
+    public int getFrequency(String key) {
+        return getFrequencyRecursiveAVL(avlRootNode, key);
+    }
+
+    private int getFrequencyRecursiveAVL(AVLTreeNode aVLTreeNode, String key) {
+        if (aVLTreeNode == null) {
+            return 0;
+        }
+
+        if (key.equals(aVLTreeNode.avlKeyword)) {
+            return aVLTreeNode.avlFrequencyCount;
+        } else if (key.compareTo(aVLTreeNode.avlKeyword) < 0) {
+            return getFrequencyRecursiveAVL(aVLTreeNode.avlLeftChild, key);
+        } else {
+            return getFrequencyRecursiveAVL(aVLTreeNode.avlRightChild, key);
+        }
+    }
+}
